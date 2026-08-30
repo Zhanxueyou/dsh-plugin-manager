@@ -1,0 +1,20 @@
+# === Node ===
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# === 系统与编辑器 ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# === 日志 ===
+logs/
+*.log
+npm-debug.log*

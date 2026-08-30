@@ -1,0 +1,18 @@
+{
+  "name": "dsh-plugin-manager-panel",
+  "version": "1.0.0",
+  "description": "DSH 插件管理器：侧边栏面板，展示全部插件的功能说明、启用状态、来源与必装标记，支持启用/停用与删除本地自定义插件",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT"
+}
