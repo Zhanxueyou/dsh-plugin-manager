@@ -3,6 +3,9 @@
 DSH Web 客户端插件目录，包含一个 DSH Web 客户端插件 `dsh-plugin-manager-panel`，
 在 Web 侧边栏底部新增「插件管理」入口，解决宿主端插件清单"杂乱、无介绍、不知道为何启停"的问题。
 
+![已安装](images/installed.png)
+![远程列表](images/remote.png)
+
 ## 功能
 
 - **全量插件清单**：列出当前运行实例的全部 Loader 插件条目（与宿主端插件清单同源），
