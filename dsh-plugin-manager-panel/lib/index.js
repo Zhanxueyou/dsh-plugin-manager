@@ -797,6 +797,58 @@ async function resolveLatestVersion(packageName) {
   return version;
 }
 
+/* ---------------- 可安装性标记（远程仓库） ---------------- */
+
+/** npm 生态的主语言（基本必有 package.json，可被 pnpm 安装）。 */
+const JS_ECOSYSTEM_LANGS = new Set(["typescript", "javascript", "coffeescript", "babel", "tsx"]);
+const npmExistsCache = new Map(); // 包名 -> { at, exists }，1 小时缓存
+
+/** 仓库名（去 owner）是否在 npm registry 有包（作为非 JS 语言的"确实可安装"兜底信号）。 */
+async function npmPackageExists(repoName) {
+  const now = Date.now();
+  const cached = npmExistsCache.get(repoName);
+  if (cached && now - cached.at < 3_600_000) return cached.exists;
+  let exists = false;
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(repoName)}`, {
+      redirect: "follow",
+      signal: AbortSignal.timeout(10_000),
+    });
+    exists = res.ok;
+  } catch {
+    // 网络失败视为不存在
+  }
+  npmExistsCache.set(repoName, { at: now, exists });
+  return exists;
+}
+
+/**
+ * 计算远程仓库的"可安装性"：
+ *  - 主语言是 JS/TS（npm 生态）→ 可安装
+ *  - 否则若仓库名在 npm 存在 → 可安装
+ *  - 否则 → 不可安装（大概率无法 pnpm 安装，避免白点）
+ */
+async function markInstallable(items) {
+  const toCheck = new Set();
+  for (const item of items) {
+    const lang = (item.language || "").toLowerCase();
+    if (!JS_ECOSYSTEM_LANGS.has(lang)) {
+      const repoName = String(item.fullName).split("/").pop();
+      if (repoName && !npmExistsCache.has(repoName)) toCheck.add(repoName);
+    }
+  }
+  const exists = new Map();
+  await Promise.all([...toCheck].map(async (name) => {
+    exists.set(name, await npmPackageExists(name));
+  }));
+  return items.map((item) => {
+    const lang = (item.language || "").toLowerCase();
+    const repoName = String(item.fullName).split("/").pop();
+    const installable = JS_ECOSYSTEM_LANGS.has(lang) || (repoName && exists.get(repoName) === true);
+    return { ...item, installable };
+  });
+}
+
 /** 当前已安装的包（挂载条目 + profile 依赖），按归一化名索引。 */
 function buildInstalledMap(ctx) {
   const map = new Map();
@@ -829,6 +881,8 @@ function buildInstalledMap(ctx) {
  *  - needsUpgrade：已装版本 < 最新版本
  */
 async function enrichRemoteItems(ctx, items) {
+  // 先标可安装性，再算已安装/版本
+  items = await markInstallable(items);
   const installedMap = buildInstalledMap(ctx);
   const hits = new Map(); // index -> {name, version}
   const toResolve = new Set();

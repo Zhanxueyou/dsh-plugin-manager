@@ -18,6 +18,8 @@ DSH Web 客户端插件目录，包含一个 DSH Web 客户端插件 `dsh-plugin
 - **必装标记**：核心插件标「核心必装」并禁止停用；停用条目显示「停用原因」
   （如 Web 层按设计停用、平台不适用、预设未安装等）。
 - **远程插件 tab**：展示 GitHub `topic:dsh-plugin` 仓库列表（★ 排序、疑似 DSH 插件绿标），
+  非 JS/TS 主语言的仓库会校验 npm 上是否存在同名包并标记「可安装性」
+  （避免出现注定失败的白点安装按钮），
   每个仓库带「安装」按钮——执行**官方默认动作** `dsh plugin --profile web add <pkg>`
   （等价于在 profile 目录运行 `pnpm add`，pnpm 不在 PATH 时回退 `corepack pnpm`），
   声明了 `dsh.bundle` 的包加入 bundle 层（重启生效），
@@ -30,8 +32,8 @@ dsh-plugin-manager/
 └── dsh-plugin-manager-panel/
     ├── package.json        # name: dsh-plugin-manager-panel, dsh.client.platform: web
     └── lib/
-        ├── index.js        # 宿主半部：/dsh-plugin-manager-api/{plugins,toggle,delete} 路由
-        └── client.js       # 浏览器半部：sidebar.footer.action 槽位面板
+        ├── index.js        # 宿主端：/dsh-plugin-manager-api/* 路由（清单/启停/删除/远程/安装/搜索）
+        └── client.js       # 浏览器端：sidebar.footer.action 槽位面板（面板 UI）
 ```
 
 ## 安装
@@ -62,6 +64,9 @@ dsh-plugin-manager/
 | GET  | `/dsh-plugin-manager-api/plugins` | 全量清单（描述/状态/来源/必装/停用原因） |
 | POST | `/dsh-plugin-manager-api/plugins/toggle` | `{entryId}` 启用/停用（写补丁层，HMR 生效） |
 | POST | `/dsh-plugin-manager-api/plugins/delete` | `{entryId}` 删除本地自定义插件 |
+| GET  | `/dsh-plugin-manager-api/remote` | 远程仓库列表（GitHub topic:dsh-plugin，5 分钟缓存） |
+| POST | `/dsh-plugin-manager-api/plugins/install` | `{spec}` 安装远程插件（pnpm add，失败自动回滚） |
+| GET  | `/dsh-plugin-manager-api/remote/search` | `?q=` 搜索远程插件（先 topic，无命中再搜全 GitHub） |
 
 ## 注意事项
 

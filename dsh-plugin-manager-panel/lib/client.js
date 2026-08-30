@@ -79,6 +79,7 @@ window.__ModuleLoader__.load({
 .dpm-badgePreset{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-secondary)}
 .dpm-badgeOrigin{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-tertiary);font-family:inherit}
 .dpm-badgeNoise{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-tertiary)}
+.dpm-badgeNoInstall{background:color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent);color:var(--dsw-alias-label-tertiary)}
 .dpm-rowDesc{color:var(--dsw-alias-label-secondary);font-size:12px;margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .dpm-rowWhy{color:var(--dsw-alias-state-warning-primary, #d97706);font-size:11px;margin-top:3px;line-height:1.4}
 .dpm-rowMeta{color:var(--dsw-alias-label-tertiary);font-size:10px;margin-top:3px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -468,9 +469,11 @@ window.__ModuleLoader__.load({
 
 			const renderRemoteRow = (r) => {
 				const installed = !!r.installedName;
+				const notInstallable = r.installable === false && !installed;
 				const badges = [];
 				// 绿标=名称/描述直接提到 DSH；灰标=官方 topic:dsh-plugin 收录但描述未直接提及（装前看 README）
 				if (installed) badges.push(h("span", { className: "dpm-badge dpm-badgePreset", key: "inst", title: "已安装 " + (r.installedVersion || "?") }, "已安装"));
+				if (notInstallable) badges.push(h("span", { className: "dpm-badge dpm-badgeNoInstall", key: "noinst", title: "非 npm/JS 生态仓库，通常无法安装为 dsh 插件" }, "不可安装"));
 				if (r.relevant) badges.push(h("span", { className: "dpm-badge dpm-badgeLocal", key: "rel" }, "DSH 相关"));
 				else badges.push(h("span", { className: "dpm-badge dpm-badgeNoise", key: "noise" }, "topic 收录"));
 				if (r.archived) badges.push(h("span", { className: "dpm-badge dpm-badgeCore", key: "arc" }, "已归档"));
@@ -485,9 +488,16 @@ window.__ModuleLoader__.load({
 				meta.push(h("span", { key: "f" }, r.forks + " fork"));
 				const topics = (r.topics || []).filter((t) => t !== "dsh-plugin").slice(0, 5).map((t) =>
 					h("span", { className: "dpm-topic", key: "t" }, t));
-				// 按钮：未安装→安装；已安装且无新版→已安装（禁用）；有新版→升级
+				// 按钮：未安装→安装；已安装且无新版→已安装（禁用）；有新版→升级；不可安装→禁用标记
 				let installBtn;
-				if (installed && !r.needsUpgrade) {
+				if (notInstallable) {
+					installBtn = h("button", {
+						type: "button",
+						className: "dpm-install dpm-installed",
+						disabled: true,
+						title: "非 npm/JS 生态仓库（" + (r.language || "未知语言") + "），通常无法作为 dsh 插件安装",
+					}, "不可安装");
+				} else if (installed && !r.needsUpgrade) {
 					installBtn = h("button", {
 						type: "button",
 						className: "dpm-install dpm-installed",
