@@ -25,15 +25,15 @@ DSH Web 客户端插件目录，包含一个 DSH Web 客户端插件 `dsh-plugin
   声明了 `dsh.bundle` 的包加入 bundle 层（重启生效），
   声明了 `dsh` 字段的包自动注册补丁行（HMR 即时挂载）。
 
-## 目录结构
+## 目录结构（仓库根 = 插件包，可直接 `pnpm add github:<owner>/dsh-plugin-manager` 安装）
 
 ```
 dsh-plugin-manager/
-└── dsh-plugin-manager-panel/
-    ├── package.json        # name: dsh-plugin-manager-panel, dsh.client.platform: web
-    └── lib/
-        ├── index.js        # 宿主端：/dsh-plugin-manager-api/* 路由（清单/启停/删除/远程/安装/搜索）
-        └── client.js       # 浏览器端：sidebar.footer.action 槽位面板（面板 UI）
+├── package.json        # name: dsh-plugin-manager-panel, dsh.client.platform: web
+├── lib/
+│   ├── index.js        # 宿主端：/dsh-plugin-manager-api/* 路由（清单/启停/删除/远程/安装/搜索）
+│   └── client.js       # 浏览器端：sidebar.footer.action 槽位面板（面板 UI）
+└── README.md
 ```
 
 ## 安装
@@ -43,7 +43,7 @@ dsh-plugin-manager/
 1. 软链到 web profile 的 node_modules：
 
    ```bash
-   ln -sfn "<你的插件源码目录>/dsh-plugin-manager-panel" \
+   ln -sfn "<你的插件源码目录>" \
      "$HOME/.dsh/profiles/node_modules/dsh-plugin-manager-panel"
    ```
 
